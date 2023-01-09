@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<%- include('./partials/head.ejs') %> 
+    
+<body>
+    <%- include('./partials/nav.ejs') %>
+    <h3><%= blog.snippet%></h3> 
+    <p><%= blog.body%></p>
+    
+    <a href="/blogs/delete/<%=blog.id%>">Delete Blog</a>
+
+    <%- include('./partials/footer.ejs') %>
+
+</body>
+</html>

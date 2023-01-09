@@ -1,36 +1,76 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const Blog  = require('./models/blog');
+
+//to use req.body
+const bodyParser = require('body-parser');
+// create application/json parser
+const jsonParser = bodyParser.json()
+// create application/x-www-form-urlencoded parser
+const urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 const app = express();
 app.set('view engine', 'ejs');
 
-app.listen(3000, ()=>{console.log('listening')});
 
+// app.listen(3000, ()=>{console.log('listening')});
+
+//mongoDB
+const p = 'eyfqGjHVu4vTeGgF';
+const dbURI = 'mongodb+srv://ney927:'+p+'@cluster0.rxukwuu.mongodb.net/node-tut?retryWrites=true&w=majority'
+//start listening to requests after connected to db
+mongoose.connect(dbURI)
+    .then(result => app.listen(3000, ()=>{console.log('listening\nconnected to db')}))
+    .catch(err => console.log(err));
+
+//use static files
 app.use(express.static('public'));
 
-app.use((req, res, next) => {
-    console.log('new request made:');
-    console.log('host: ', req.hostname);
-    console.log('path: ', req.path);
-    console.log('method: ', req.method);
-    next();
-});
+//routes
+app.get('/', async (req, res) => {
+    allBlogs = await Blog.find({}).sort({$natural:-1});
+    res.render('index', {title: 'HomePage', blogs: allBlogs});
+ });
+ 
+ app.get('/about', (req, res) => {
+     res.render('about', {title: 'About'});
+ });
+ 
+ app.get('/blogs/create', (req, res) => {
+     res.render('create', {title: 'Create Blog'});
+ });
+ 
+ app.get('/blogs/:id', (req, res) => {
+     const id = req.params.id;
+     Blog.findById(id)
+         .then(result => {res.render('display', {title: result.title, blog: result})})
+         .catch(err => {console.log(err)});
+ });
+ 
+ app.get('/blogs/delete/:id', (req, res) => {
+     const id = req.params.id;
+     let blog_title;
+     Blog.findById(id)
+         .then(result => {blog_title = result.title})
+         .catch(err => {console.log(err)});
+     Blog.findByIdAndDelete(id)
+         .then(result => {res.render('delete', {title: 'Deleted Blog', blog_title: blog_title})})
+         .catch(err => {console.log(err)});
+ })
 
-app.get('/', (req, res) => {
-    const fillerBlogs = [
-        {title: 'Blog 1', snippet: '1live love laugh the day until it fades into the endless dark that is life #lol'},
-        {title: 'Blog 2', snippet: '2live love laugh the day until it fades into the endless dark that is life #lol'},
-        {title: 'Blog 3', snippet: '3live love laugh the day until it fades into the endless dark that is life #lol'},
-    ];
+app.post('/add-blog', urlencodedParser, (req, res) => {
+    console.log(req.body);
+    const blog = new Blog({
+        title: req.body.title,
+        snippet: req.body.snippet,
+        body: req.body.body
+    });
 
-    res.render('index', {title: 'HomePage', blogs: fillerBlogs});
-});
-
-app.get('/about', (req, res) => {
-    res.render('about', {title: 'About'});
-});
-
-app.get('/blogs/create', (req, res) => {
-    res.render('create', {title: 'Create Blog'});
+    blog.save()
+        .then(result => {
+            res.redirect('/');
+        })
+        .catch(err => {console.log(err)})
 });
 
 app.use((req, res) => {

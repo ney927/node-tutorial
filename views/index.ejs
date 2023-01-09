@@ -11,7 +11,9 @@
         <h2>All Blogs</h2>
         <% if (blogs.length > 0) { %>
             <% blogs.forEach(blog => { %>
-                <h4 class="blog-title"> <%=blog.title%></h4>
+                <a href="/blogs/<%=blog.id %>">
+                    <h4 class="blog-title"> <%=blog.title%></h4>
+                </a>
                 <p class="blog-snippet"> <%=blog.snippet%></p>
                 <br>
            <% }) %> 
@@ -22,5 +24,4 @@
 </body>
 
 <%- include('./partials/footer.ejs') %> 
-
 </html>
